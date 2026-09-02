@@ -1,4 +1,4 @@
-# Electrónica Digital I - 2026-1
+# Electrónica Digital I - 2026-II
 
 Índice: 
 - [Introducción](#introducción)
@@ -12,8 +12,9 @@ Bienvenidos al laboratorio de **Electrónica Digital 1**.
 El laboratorio de Electrónica Digital I tiene como objetivo principal complementar los conceptos teóricos impartidos en clase magistral mediante actividades prácticas que permitan a los estudiantes desarrollar competencias en diseño e implementación de circuitos digitales.
 
 ## Profesores:
+-Johan Sebastian Eslava
+-Andres Felipe Galindo Rojas
 
-* [Ronny Alberto Rueda Mendez](https://github.com/DarkSpartan345)
 
 ## Metodología
 
@@ -26,9 +27,16 @@ El laboratorio se desarrolla bajo el siguiente esquema:
    Implementación práctica en grupos, validación de resultados y análisis.
 
 3. **Documentación**  
-   Elaboración del informe en `README.md` usando Markdown y entrega por GitHub Classroom.
+   Elaboración de bitácora grupal:
+      * Objetivos.
+      * Marco teorico.
+      * Etapa de diseño del sistema.
+      * Etapa de descripción en HDL.
+      * Etapa de simulación.
+      * Etapa de implementación.
+      * Resultados y análisis.
 
-4. **Evaluación y retroalimentación**
+5. **Evaluación y retroalimentación**
 
     **Criterios de evaluación:**
     * **Criterios Habilitantes**
@@ -51,9 +59,9 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 
     * Se valorará positivamente que los estudiantes vayan más allá de lo solicitado en la guía, incorporando mejoras, optimizaciones, características adicionales y/o realizando un análisis más profundo del diseño propuesto.
 
-5. **Normas Generales del Laboratorio**
+6. **Normas Generales del Laboratorio**
 
-    * Asistencia obligatoria a todas las sesiones, si no se asiste a la sesion de laboratorio se pierde la nota de la sesion.
+    * Asistencia obligatoria a todas las sesiones.
 
     * Puntualidad y respeto por los tiempos asignados.
 
