@@ -73,7 +73,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 
 ## Cronograma
 
-<!-- Esta es una nota que no se va a ver en la vista renderizada -->
+
 
 <table>
   <tr>
@@ -101,6 +101,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td> 11 Abril</td>
     <td>5%</td>
   </tr>
+  <!--
   <tr>
     <td>3-4</td>
     <td>Sumador de 1 y 4 bits y sumador/restador</td>
@@ -150,6 +151,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td> 24 may</td>
     <td>30%</td>
   </tr>
+   -->
   </table>
  
 
