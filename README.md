@@ -30,9 +30,9 @@ El laboratorio se desarrolla bajo el siguiente esquema:
    Elaboración de bitácora grupal:
       * Objetivos.
       * Marco teorico.
-      * Etapa de diseño del sistema(preinforme).
-      * Etapa de descripción en HDL(preinforme).
-      * Etapa de simulación(preinforme).
+      * Etapa de diseño del sistema (preinforme).
+      * Etapa de descripción en HDL (preinforme).
+      * Etapa de simulación (preinforme).
       * Etapa de implementación (informe)
       * Resultados y análisis.
 
@@ -42,8 +42,8 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     * **Criterios Habilitantes**
 
       * Asistencia al laboratorio
-      * entrega del preinforme
-      * commits realizados y justificados
+      * Entrega del preinforme
+      * Commits realizados y justificados
 
     * **Etapas del desarrollo del sistema:** Se evaluará que los estudiantes sigan las etapas del flujo de diseño digital, incluyendo:
 
@@ -55,7 +55,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 
       * Etapa de implementación (informe).
 
-    * **Documentación en GitHub Classroom:** Claridad, precisión, organización, cumplimiento de los plazos establecidos y adherencia a los lineamientos de entrega planteados en la plantilla, completando cada una de las secciones definidas en esta.
+    * **Documentación en GitHub Classroom y Bitácora:** Claridad, precisión, organización, cumplimiento de los plazos establecidos y adherencia a los lineamientos de entrega planteados, completando cada una de las secciones definidas en esta.
 
     * Se valorará positivamente que los estudiantes vayan más allá de lo solicitado en la guía, incorporando mejoras, optimizaciones, características adicionales y/o realizando un análisis más profundo del diseño propuesto.
 
@@ -72,6 +72,8 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     * Informar cualquier desperfecto o irregularidad con los equipos al profesor.
 
 ## Cronograma
+
+<!-- Esta es una nota que no se va a ver en la vista renderizada -->
 
 <table>
   <tr>
