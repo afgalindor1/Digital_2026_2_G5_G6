@@ -90,7 +90,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>Instalación de herramientas</td>
     <td><a href="/Labs/Lab_0/README.md">Lab_0</a></td>
     <td><a href="https://classroom.github.com/a/N5954o4U">Link G5</a>, <a href="https://classroom.github.com/a/n2SU_VxM">Link G6</a></td> 
-    <td>8 febrero</td>
+    <td> 10 de septiembre</td>
     <td>5%</td>
   </tr>
   <tr>
@@ -98,7 +98,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>Comparación de tecnologías CMOS vs TTL</td>
     <td><a href="/Labs/Lab_1/README.md">Lab_1</a></td>
     <td><a href="https://classroom.github.com/a/9H91G-4q">Link G5</a>, <a href="https://classroom.github.com/a/FK4rAF88">Link G6</a></td>
-    <td> 11 Abril</td>
+    <td> 26 de septiembre </td>
     <td>5%</td>
   </tr>
   <!--
