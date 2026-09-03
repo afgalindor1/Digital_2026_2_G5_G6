@@ -30,10 +30,10 @@ El laboratorio se desarrolla bajo el siguiente esquema:
    Elaboración de bitácora grupal:
       * Objetivos.
       * Marco teorico.
-      * Etapa de diseño del sistema.
-      * Etapa de descripción en HDL.
-      * Etapa de simulación.
-      * Etapa de implementación.
+      * Etapa de diseño del sistema(preinforme).
+      * Etapa de descripción en HDL(preinforme).
+      * Etapa de simulación(preinforme).
+      * Etapa de implementación (informe)
       * Resultados y análisis.
 
 5. **Evaluación y retroalimentación**
