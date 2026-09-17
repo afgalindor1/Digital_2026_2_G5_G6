@@ -107,7 +107,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>Sumador de 1 y 4 bits y sumador/restador</td>
     <td><a href="/Labs/Lab_2/README.md">Lab_2</a></td>
     <td><a href="https://classroom.github.com/a/-kV7XGq5">Link G5</a>, <a href="https://classroom.github.com/a/jb92N8Ej">Link G6</a></td>
-    <td> 18 Abril</td>
+    <td> G5 5/10/2026 G6 8/10/2026</td>
     <td>10%</td>
   </tr>
   <!--
