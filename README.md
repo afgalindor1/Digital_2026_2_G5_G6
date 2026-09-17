@@ -74,6 +74,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 ## Cronograma
 
 
+## Cronograma
 
 <table>
   <tr>
@@ -101,7 +102,6 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td> G5 21/09/2026 G6 24/09/2026 </td>
     <td>10%</td>
   </tr>
-  <!--
   <tr>
     <td>3-4</td>
     <td>Sumador de 1 y 4 bits y sumador/restador</td>
@@ -110,6 +110,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td> 18 Abril</td>
     <td>10%</td>
   </tr>
+  <!--
   <tr>
     <td>4-6 </td>
     <td>Decodificador BCD a 7 segmentos</td>
