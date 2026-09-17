@@ -98,7 +98,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>Comparación de tecnologías CMOS vs TTL</td>
     <td><a href="/Labs/Lab_1/README.md">Lab_1</a></td>
     <td><a href="https://classroom.github.com/a/9H91G-4q">Link G5</a>, <a href="https://classroom.github.com/a/FK4rAF88">Link G6</a></td>
-    <td> 26 de septiembre </td>
+    <td> G5 21/09/2026 G6 24/09/2026 </td>
     <td>10%</td>
   </tr>
   <!--
