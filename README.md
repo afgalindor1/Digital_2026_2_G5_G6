@@ -76,12 +76,14 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 
 ## Cronograma
 
+## Cronograma
+
 <table>
   <tr>
     <th>Semana</th>
     <th>Nombre</th>
     <th>Guía</th>
-    <th>Entrega (GitHub Classroom)</th>
+    <th>Entrega (Google Classroom)</th>
     <th>Deadline</th>
     <th>Porcentaje</th>
   </tr>
@@ -90,7 +92,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>1</td>
     <td>Instalación de herramientas</td>
     <td><a href="/Labs/Lab_0/README.md">Lab_0</a></td>
-    <td><a href="https://classroom.github.com/a/N5954o4U">Link G5</a>, <a href="https://classroom.github.com/a/n2SU_VxM">Link G6</a></td> 
+    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw?cjc=vaomo5iz">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky?cjc=iortinfz">Link G6</a></td> 
     <td> 10 de septiembre</td>
     <td>10%</td>
   </tr>
@@ -98,7 +100,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>2-3</td>
     <td>Comparación de tecnologías CMOS vs TTL</td>
     <td><a href="/Labs/Lab_1/README.md">Lab_1</a></td>
-    <td><a href="https://classroom.github.com/a/9H91G-4q">Link G5</a>, <a href="https://classroom.github.com/a/FK4rAF88">Link G6</a></td>
+    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw/a/ODY5NjgzMjEwNzAw/details">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky/a/ODY5NjgzNjUxMzgy/details">Link G6</a></td>
     <td> G5 21/09/2026 G6 24/09/2026 </td>
     <td>10%</td>
   </tr>
@@ -106,7 +108,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>3-4</td>
     <td>Sumador de 1 y 4 bits y sumador/restador</td>
     <td><a href="/Labs/Lab_2/README.md">Lab_2</a></td>
-    <td><a href="https://classroom.github.com/a/-kV7XGq5">Link G5</a>, <a href="https://classroom.github.com/a/jb92N8Ej">Link G6</a></td>
+    <td>Link G5, Link G6</td>
     <td> G5 5/10/2026 G6 8/10/2026</td>
     <td>10%</td>
   </tr>
