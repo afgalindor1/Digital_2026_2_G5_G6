@@ -78,6 +78,8 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 
 ## Cronograma
 
+## Cronograma
+
 <table>
   <tr>
     <th>Semana</th>
@@ -92,8 +94,8 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>1</td>
     <td>Instalación de herramientas</td>
     <td><a href="/Labs/Lab_0/README.md">Lab_0</a></td>
-    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw?cjc=vaomo5iz">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky?cjc=iortinfz">Link G6</a></td> 
-    <td> 10 de septiembre</td>
+    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw?cjc=vaomo5iz">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky?cjc=iortinfz">Link G6</a></td>
+    <td>G5 07/09/2026 G6 10/09/2026</td>
     <td>10%</td>
   </tr>
   <tr>
@@ -101,61 +103,66 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>Comparación de tecnologías CMOS vs TTL</td>
     <td><a href="/Labs/Lab_1/README.md">Lab_1</a></td>
     <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw/a/ODY5NjgzMjEwNzAw/details">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky/a/ODY5NjgzNjUxMzgy/details">Link G6</a></td>
-    <td> G5 21/09/2026 G6 24/09/2026 </td>
+    <td>G5 21/09/2026 G6 24/09/2026</td>
     <td>10%</td>
   </tr>
   <tr>
-    <td>3-4</td>
+    <td>4-5</td>
     <td>Sumador de 1 y 4 bits y sumador/restador</td>
     <td><a href="/Labs/Lab_2/README.md">Lab_2</a></td>
     <td>Link G5, Link G6</td>
-    <td> G5 5/10/2026 G6 8/10/2026</td>
+    <td>G5 05/10/2026 G6 08/10/2026</td>
     <td>10%</td>
   </tr>
-  <!--
   <tr>
-    <td>4-6 </td>
+    <td>5</td>
+    <td>Primera reunión de seguimiento del proyecto</td>
+    <td><a>Proyecto</a></td>
+    <td>Link G5, Link G6</td>
+    <td>G5 28/09/2026 G6 01/10/2026</td>
+    <td>10%</td>
+  </tr>
+  <tr>
+    <td>6-7</td>
     <td>Decodificador BCD a 7 segmentos</td>
     <td><a href="/Labs/Lab_3/README.md">Lab_3</a></td>
-    <td><a href="https://classroom.github.com/a/9G2RsupD">Link G5</a>, <a href="https://classroom.github.com/a/TJlGhGNm">Link G6</a></td>
-    <td> 2 May</td>
+    <td>Link G5, Link G6</td>
+    <td>G5 19/10/2026 G6 22/10/2026</td>
     <td>10%</td>
   </tr>
   <tr>
-    <td>6-8</td>
-    <td>Circuitos Secuenciales,Contadores y PWM.</td>
+    <td>8-10</td>
+    <td>Diseño de una Cerradura Electrónica con Teclado Matricial y Control de Servo en FPGA: Circuitos Secuenciales, Contadores, PWM y registros de desplazamiento</td>
     <td><a href="/Labs/Lab_4/README.md">Lab_4</a></td>
-    <td><a href="https://classroom.github.com/a/F_PPDPtc">Link G5</a>, <a href="https://classroom.github.com/a/bAentUCO">Link G6</a></td>
-    <td>16 May</td>
+    <td>Link G5, Link G6</td>
+    <td>G5 09/11/2026 G6 12/11/2026</td>
+    <td>20%</td>
+  </tr>
+  <tr>
+    <td>9</td>
+    <td>Segunda reunión de seguimiento del proyecto</td>
+    <td><a>Proyecto</a></td>
+    <td>Link G5, Link G6</td>
+    <td>G5 26/10/2026 G6 29/10/2026</td>
     <td>10%</td>
   </tr>
   <tr>
-    <td>8-9</td>
-    <td>Diseño de una Cerradura Electrónica con Teclado Matricial y Control de Servo en FPGA</td>
-    <td><a href="/Labs/Lab_5/readme.md">Lab_5</a></td>
-    <td><a href="">Link</a></td>
-    <td>30 May</td>
-    <td>10%</td>
-  </tr>
-
-  <tr>
-    <td>8-9</td>
+    <td>11-12</td>
     <td>LCD 16x2 en modo paralelo</td>
     <td><a href="/Labs/Lab_6/README.md">Lab_6</a></td>
-    <td><a href="">Link</a></td>
-    <td> 13 Nov</td>
+    <td>Link G5, Link G6</td>
+    <td>G5 23/11/2026 G6 26/11/2026</td>
     <td>10%</td>
   </tr>
   <tr>
-    <td>10</td>
-    <td> Proyecto final</td>
+    <td>15</td>
+    <td>Proyecto final</td>
     <td><a>Proyecto</a></td>
-    <td><a href="">Link</a></td>
-    <td> 24 may</td>
-    <td>30%</td>
+    <td>Link</td>
+    <td>11/12/2026</td>
+    <td>10%</td>
   </tr>
-   -->
-  </table>
+</table>
  
 
 
