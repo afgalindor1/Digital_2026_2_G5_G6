@@ -71,12 +71,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
 
     * Informar cualquier desperfecto o irregularidad con los equipos al profesor.
 
-## Cronograma
 
-
-## Cronograma
-
-## Cronograma
 
 ## Cronograma
 
