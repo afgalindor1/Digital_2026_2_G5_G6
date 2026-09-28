@@ -113,7 +113,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>5</td>
     <td>Primera reunión de seguimiento del proyecto</td>
     <td><a>Proyecto</a></td>
-    <td>Link G5, Link G6</td>
+    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw/a/ODY5ODk5OTQ4NDQw/details">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky/a/ODY5OTAwMDMwMDg1/details">Link G6</a></td>
     <td>G5 28/09/2026 G6 01/10/2026</td>
     <td>10%</td>
   </tr>
