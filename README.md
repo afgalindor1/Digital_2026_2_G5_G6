@@ -105,7 +105,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>4-5</td>
     <td>Sumador de 1 y 4 bits y sumador/restador</td>
     <td><a href="/Labs/Lab_2/README.md">Lab_2</a></td>
-    <td>Link G5, Link G6</td>
+    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw/a/ODY5ODk4NTk0MjUw/details">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky/a/ODY5ODk4ODE4ODI1/details">Link G6</a></td>
     <td>G5 05/10/2026 G6 08/10/2026</td>
     <td>10%</td>
   </tr>
@@ -121,7 +121,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
     <td>6-7</td>
     <td>Decodificador BCD a 7 segmentos</td>
     <td><a href="/Labs/Lab_3/README.md">Lab_3</a></td>
-    <td>Link G5, Link G6</td>
+    <td><a href="https://classroom.google.com/c/ODg1ODAyNzA0OTQw/a/ODY5ODk4MjQzMzc5/details">Link G5</a>, <a href="https://classroom.google.com/c/ODY5NjgzNTI3NDky/a/ODY5ODk4OTAzMDk3/details">Link G6</a></td>
     <td>G5 19/10/2026 G6 22/10/2026</td>
     <td>10%</td>
   </tr>
@@ -144,7 +144,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
   <tr>
     <td>11-12</td>
     <td>LCD 16x2 en modo paralelo</td>
-    <td><a href="/Labs/Lab_6/README.md">Lab_6</a></td>
+    <td><a href="/Labs/Lab_5/README.md">Lab_5</a></td>
     <td>Link G5, Link G6</td>
     <td>G5 23/11/2026 G6 26/11/2026</td>
     <td>10%</td>
