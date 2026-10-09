@@ -128,7 +128,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
   <tr>
     <td>8-10</td>
     <td>Diseño de una Cerradura Electrónica con Teclado Matricial y Control de Servo en FPGA: Circuitos Secuenciales, Contadores, PWM y registros de desplazamiento</td>
-    <td><a href="/Labs/Lab_4/README.md">Lab_4</a></td>
+    <td><a href="/Labs/lab_4_5/README.md">Lab_4</a></td>
     <td>Link G5, Link G6</td>
     <td>G5 09/11/2026 G6 12/11/2026</td>
     <td>20%</td>
