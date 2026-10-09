@@ -4,11 +4,11 @@ Circuitos secuenciales, contadores, PWM, teclado matricial y máquinas de estado
 
 **Duración:** 3 semanas, una parte por semana. Cada parte reutiliza los módulos de la anterior: el generador PWM de la Parte 1 y la interfaz con teclado de la Parte 2 se integran en la cerradura de la Parte 3.
 
-## [Parte 1: Generación de PWM y Control de Servomotor](/Labs/Lab_4/Parte1_Servo_PWM.md)
+## [Parte 1: Generación de PWM y Control de Servomotor](Parte1_Servo_PWM.md)
 
-## [Parte 2: Interfaz con Teclado Matricial](/Labs/Lab_4/Parte2_Teclado_Matricial.md)
+## [Parte 2: Interfaz con Teclado Matricial](Parte2_Teclado_Matricial.md)
 
-## [Parte 3: Registro de Desplazamiento, FSM y Cerradura Electrónica](/Labs/Lab_4/Parte3_Cerradura.md)
+## [Parte 3: Registro de Desplazamiento, FSM y Cerradura Electrónica](Parte3_Cerradura.md)
 
 ---
 
