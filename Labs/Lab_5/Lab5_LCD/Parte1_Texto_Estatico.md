@@ -19,6 +19,10 @@
    2.9 Arquitectura de un controlador: unidad de control y ruta de datos  
    2.10 Interfaz eléctrica entre la FPGA y la LCD  
 3. Especificación  
+   3.1 Código base  
+   3.2 Recorrido guiado por el código base  
+   3.3 Actividades  
+   3.4 Requisitos  
 4. Pre-informe  
 5. Implementación y criterios de validación  
 
@@ -36,7 +40,7 @@
 
 ## 2. Fundamento teórico
 
-Esta sección resume lo necesario para la Parte 1. El documento de [fundamentos](Fundamentos.md) (secciones 1 a 9) explica cada tema con más detalle y con ejemplos resueltos.
+Esta sección resume lo necesario para la Parte 1. El documento de [fundamentos básicos](Fundamentos.md) explica, con códigos sencillos, las técnicas que usa el código base: contadores para medir tiempo, máquinas de estados, *handshake* entre dos máquinas y textos en Verilog.
 
 ### 2.1 La pantalla LCD 16x2
 
@@ -211,7 +215,7 @@ Así, cada máquina tiene pocos estados y una función clara, y el módulo de es
 Las salidas de la FPGA trabajan a 3,3 V, mientras que la lógica de la LCD se especifica para 5 V. Esto tiene dos consecuencias:
 
 - **La LCD nunca debe manejar el bus.** Si R/W valiera 1, la pantalla pondría niveles de hasta 5 V en las líneas de datos, que son pines de la FPGA. Por eso el controlador fija `lcd_rw = 0` y nunca lee la pantalla.
-- **Los niveles de entrada de la LCD deben revisarse.** La hoja de datos define el nivel alto mínimo de entrada (V<sub>IH</sub>) en función de V<sub>DD</sub>. Compararlo con el nivel alto de salida de la FPGA es parte del análisis de este laboratorio.
+- **Los niveles de entrada de la LCD deben revisarse.** La hoja de datos define el nivel alto mínimo de entrada (V<sub>IH</sub>) en función de V<sub>DD</sub>. Para que la LCD reconozca un 1, el nivel alto de salida de la FPGA debe ser mayor que V<sub>IH</sub>; por eso es importante la posición del selector de alimentación de la LCD (sección 5).
 
 ---
 
@@ -239,59 +243,108 @@ Interfaz de `lcd_ctrl`:
 | `lcd_rs`, `lcd_rw`, `lcd_e` | salida | Señales de control de la LCD |
 | `lcd_data[7:0]` | salida | Bus de datos D7–D0 |
 
-### 3.2 Actividades
+### 3.2 Recorrido guiado por el código base
 
-1. **Analizar** el código y diagramar:
-    - la arquitectura completa, separando la unidad de control y la ruta de datos;
+Esta sección explica cómo está organizado el código, para que el análisis y los diagramas se hagan leyendo el código con una idea clara de qué buscar. Conviene tener abiertos los archivos mientras se lee.
+
+#### `lcd_top.v`: conexión con la tarjeta
+
+Es el módulo que se sintetiza. Solo hace dos cosas: invierte el reset (el pulsador de la tarjeta es activo en bajo y el controlador usa reset activo en alto) y fija el texto de cada fila con los parámetros `LINEA1` y `LINEA2`.
+
+#### `lcd_escritura.v`: escribir un byte
+
+Este módulo sabe **cómo** se escribe un byte en la LCD, pero no sabe qué byte enviar. Cuando recibe un pulso en `iniciar`, guarda `rs_in` y `dato_in`, genera el pulso de E, espera el tiempo de ejecución y avisa con un pulso en `listo`.
+
+Su máquina de estados tiene cuatro estados:
+
+| Estado | Qué hace | Cuánto dura |
+|---|---|---|
+| `REPOSO` | Espera una orden en `iniciar` | Hasta que llegue la orden |
+| `PREPARAR` | Mantiene RS y el byte en el bus antes de subir E | 1 µs |
+| `PULSO_E` | Mantiene E en 1; al salir de este estado E baja y la LCD captura el byte | 1 µs |
+| `EJECUTAR` | Espera a que la LCD ejecute la instrucción | 50 µs, o 2 ms si `espera_larga = 1` |
+
+Puntos para leer el código:
+
+- **Los tiempos están en ciclos de reloj.** `CICLOS_US = CLK_FREQ / 1_000_000` es el número de ciclos en 1 µs (50 a 50 MHz), y los demás tiempos se escriben a partir de él.
+- **Un solo contador mide la duración de todos los estados.** La línea `if (rst || estado != siguiente) cuenta <= 0;` lo pone en cero cada vez que la máquina cambia de estado; así, en cada estado la cuenta empieza desde 0.
+- **Las condiciones de salida** son las señales `fin_prep`, `fin_pulso` y `fin_ejec`, que comparan la cuenta con el último valor de cada tiempo.
+- **E sale de un flip-flop** (`lcd_e <= (siguiente == PULSO_E);`). Así no tiene pulsos espurios, que la LCD interpretaría como escrituras.
+
+#### `lcd_ctrl.v`: qué bytes enviar y en qué orden
+
+Este módulo contiene la máquina de estados principal y la ruta de datos. Cada byte lo envía a través de `lcd_escritura`.
+
+Estados de la máquina principal:
+
+| Estado | Qué hace |
+|---|---|
+| `ESPERA_ENCENDIDO` | Espera 50 ms después del reset, para que la LCD arranque |
+| `CONFIG` | Envía, uno por uno, los 5 comandos de inicialización (sección 2.6) |
+| `DIR_LINEA1` | Ubica el cursor al comienzo de la fila 1 |
+| `LINEA1_TXT` | Envía los 16 caracteres de la fila 1 |
+| `DIR_LINEA2` | Ubica el cursor al comienzo de la fila 2 |
+| `LINEA2_TXT` | Envía los 16 caracteres de la fila 2 |
+| `FIN` | No hace nada más: el texto queda en la pantalla |
+
+Elementos de la ruta de datos:
+
+| Elemento en el código | Tipo de bloque | Para qué sirve |
+|---|---|---|
+| `espera` | Contador | Mide los 50 ms de la espera de encendido |
+| `idx` | Contador (0 a 4) | Indica cuál comando de configuración se envía |
+| `cmd_config` | Memoria de comandos (`case`) | Entrega el comando número `idx` |
+| `col` | Contador (0 a 15) | Indica cuál carácter de la fila se envía |
+| `caracter(LINEA1, col)` | Multiplexor | Extrae el carácter número `col` del texto |
+| `dato_sel`, `rs_sel` | Multiplexor | Escogen, según el estado, el byte que se envía y si es instrucción o carácter |
+| `espera_larga` | Comparador | Vale 1 cuando el comando es Clear Display |
+
+Comunicación con `lcd_escritura` (*handshake*):
+
+- `listo` llega desde `lcd_escritura` cada vez que termina un byte. Con él avanzan los contadores `idx` y `col`, y la máquina principal decide si cambia de estado.
+- `iniciar` se genera en `lcd_ctrl` para pedir el siguiente byte. La señal `avanzar` indica el momento en que termina un paso: el fin de la espera de encendido o un `listo`.
+
+#### `test/`: testbench y modelo de la pantalla
+
+`tb_lcd.v` conecta `lcd_ctrl` al modelo `modelo_lcd.v`, que se comporta como la LCD: captura cada byte en el flanco de bajada de E, guarda los caracteres, revisa los tiempos de la hoja de datos e imprime la pantalla en la consola. Al final, el testbench compara las dos filas con el texto esperado y escribe `OK` o `FALLO`.
+
+### 3.3 Actividades
+
+1. **Analizar** el código con ayuda del recorrido anterior.
+2. **Diagramar:**
+    - la arquitectura completa, separando la unidad de control, la ruta de datos y el módulo de escritura;
     - la máquina de estados de `lcd_ctrl.v` y la de `lcd_escritura.v`.
-2. **Personalizar** el texto: escribir en `LINEA1` y `LINEA2` un texto del grupo (por ejemplo, el número del grupo y los apellidos), con exactamente 16 caracteres por fila y sin tildes.
-3. **Simular** con el testbench y el modelo de la pantalla, y analizar las formas de onda.
-4. **Implementar** el diseño en la tarjeta Cyclone IV.
 
-### 3.3 Requisitos
+    Para obtener un diagrama de estados a partir del código: los estados son las constantes `localparam` del registro de estado; las transiciones y sus condiciones están en el bloque `always @(*)` del siguiente estado; la línea `siguiente = estado;` es la flecha que vuelve al mismo estado cuando no se cumple ninguna condición. Los [fundamentos](Fundamentos.md#3-máquinas-de-estados-en-verilog) muestran el procedimiento completo con un ejemplo.
+
+3. **Personalizar** el texto: escribir en `LINEA1` y `LINEA2` (archivo `lcd_top.v`) un texto del grupo, por ejemplo el número del grupo y los apellidos, con exactamente 16 caracteres por fila y sin tildes.
+4. **Simular** con el testbench y el modelo de la pantalla (sección 4) y revisar las formas de onda.
+5. **Implementar** el diseño en la tarjeta Cyclone IV (sección 5).
+
+### 3.4 Requisitos
 
 1. El texto de cada fila debe tener exactamente 16 caracteres; los que sobren se completan con espacios.
 2. La simulación debe terminar con `Fallas: 0`: el texto se muestra correctamente y el modelo no reporta errores de tiempo.
-3. Cualquier cambio en los tiempos de `lcd_escritura.v` debe justificarse con la hoja de datos.
+3. Los tiempos de `lcd_escritura.v` no se modifican. Si un grupo decide cambiarlos, debe justificarlo con la hoja de datos.
 
 ---
 
 ## 4. Pre-informe
 
 - **Diseño del sistema:**
-  - Diagrama de bloques de la arquitectura completa, con nombres y anchos de todas las señales. Debe distinguir la unidad de control, la ruta de datos (contadores, memoria de comandos, texto, multiplexor) y el módulo de escritura.
-  - Diagrama de estados y tabla de transiciones de la máquina principal (`lcd_ctrl.v`) y de la máquina de escritura (`lcd_escritura.v`). En cada transición se debe indicar la condición que la produce.
-  - Tabla de las instrucciones que envía el controlador, en el orden en que se envían:
-
-    | # | Byte (hex) | Byte (binario) | Instrucción | Significado de cada bit configurable |
-    |---|---|---|---|---|
-    | 1 | | | | |
-
-  - Tabla de tiempos:
-
-    | Tiempo | Valor en el código | Ciclos a 50 MHz | Bits del contador | Mínimo de la hoja de datos | Margen |
-    |---|---|---|---|---|---|
-    | Espera de encendido | | | | 40 ms | |
-    | Preparación del dato | | | | t<sub>AS</sub>, t<sub>DSW</sub> | |
-    | Pulso de E | | | | 140 ns | |
-    | Ejecución corta | | | | 39 µs y 43 µs | |
-    | Ejecución larga | | | | 1,53 ms | |
-
-  - Tiempo total estimado desde el reset hasta que se escribe el último carácter, con el cálculo.
+  - Diagrama de bloques de la arquitectura completa: unidad de control, ruta de datos (contadores, memoria de comandos, texto, multiplexor) y módulo de escritura, con los nombres de las señales que los conectan.
+  - Diagrama de estados de `lcd_ctrl.v` y de `lcd_escritura.v`, con la condición de cada transición.
 - **Descripción en HDL:**
-  - Relación entre cada bloque del diagrama de arquitectura y las líneas de código que lo implementan.
-  - Explicación del *handshake* `iniciar` / `listo`: cuándo se activa cada señal y por qué `iniciar` se genera un ciclo después de `listo`.
-  - Explicación de cómo se extrae cada carácter de `LINEA1` y `LINEA2` (función `caracter`).
-  - Texto elegido por el grupo y su código ASCII.
+  - Explicación breve, con sus palabras, de qué hace cada módulo, indicando en qué parte del código está cada bloque del diagrama de arquitectura.
+  - Explicación del *handshake*: qué indica `iniciar`, qué indica `listo` y en qué orden ocurren.
+  - Texto elegido por el grupo para cada fila.
 - **Simulación:**
   - Salida de consola del testbench, con la pantalla impresa por el modelo.
-  - Capturas de GTKWave con su análisis:
-    - la secuencia completa, con `estado` en formato decimal;
-    - un ciclo de escritura ampliado, midiendo el pulso de E, la preparación del dato y el tiempo hasta la siguiente escritura;
-    - la espera larga de Clear Display.
-  - Comparación de las mediciones con la tabla de tiempos.
+  - Dos capturas de GTKWave, cada una con una explicación corta:
+    - la secuencia completa, con `estado` en formato decimal, señalando dónde empieza cada estado;
+    - un ciclo de escritura ampliado, midiendo con los marcadores el ancho del pulso de E.
 
-Comandos de simulación:
+Comandos de simulación, desde la carpeta que contiene `src` y `test`:
 
 ```
 iverilog -o sim.vvp test/tb_lcd.v test/modelo_lcd.v src/lcd_ctrl.v src/lcd_escritura.v
@@ -299,7 +352,21 @@ vvp sim.vvp
 gtkwave tb_lcd.vcd
 ```
 
-La simulación usa el reloj real de 50 MHz y dura unos 54 ms de tiempo simulado, por lo que tarda algunos segundos.
+La simulación usa el reloj real de 50 MHz y dura unos 54 ms de tiempo simulado, por lo que tarda algunos segundos. La salida de consola debe verse así, con el texto del grupo:
+
+```
+        +----------------+
+  LCD   |Electronica Dig.|
+  LCD   |  LCD 16x2 OK   |
+        +----------------+  display encendido, 39 escrituras, 0 errores
+OK    fila 1 = "Electronica Dig."
+OK    fila 2 = "  LCD 16x2 OK   "
+Tiempo total: 54.08 ms   Fallas: 0
+```
+
+Para ver el texto del grupo en la simulación se cambian también los textos `TXT1` y `TXT2` de `tb_lcd.v`.
+
+Señales útiles en GTKWave (panel *SST*, a la izquierda): `lcd_e`, `lcd_rs`, `lcd_data` (en hexadecimal), `dut.estado`, `dut.iniciar`, `dut.listo` y `dut.u_escritura.estado`. Como la simulación dura 54 ms y un pulso de E dura 1 µs, hay que ampliar bastante (*zoom*) para ver un ciclo de escritura.
 
 ---
 
@@ -359,5 +426,4 @@ La simulación usa el reloj real de 50 MHz y dura unos 54 ms de tiempo simulado,
 
 - Los diagramas de estados coinciden con el código: cada estado y cada transición del código aparecen en el diagrama, con su condición.
 - La simulación termina con `Fallas: 0` y el modelo no reporta errores de tiempo.
-- En GTKWave, las mediciones del ciclo de escritura cumplen los mínimos de la hoja de datos.
 - En la tarjeta, la pantalla muestra en las dos filas el texto definido por el grupo.

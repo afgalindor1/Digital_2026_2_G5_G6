@@ -8,9 +8,9 @@ Máquinas de estados, unidad de control y ruta de datos, e interfaz con un perif
 
 ## [Parte 2: Texto dinámico en la LCD 16x2](Parte2_Texto_Dinamico.md)
 
-## [Fundamentos](Fundamentos.md)
+## [Fundamentos básicos](Fundamentos.md)
 
-Teoría ampliada con ejemplos resueltos: funcionamiento de la pantalla, instrucciones, tiempos, inicialización, memoria y caracteres, unidad de control y ruta de datos, máquinas de estados en Verilog, conversión de binario a decimal, sincronización, simulación con el modelo de la pantalla, interfaz eléctrica y diagnóstico en la tarjeta.
+Las técnicas de Verilog que usa el laboratorio, cada una con un código sencillo y explicado: medir tiempo con un contador, máquinas de estados, *handshake* entre dos máquinas, textos, posición del cursor, conversión de números a caracteres, lectura de interruptores y simulación con el modelo de la LCD.
 
 ---
 
@@ -25,16 +25,17 @@ Cada grupo copia estas carpetas en su repositorio de entrega.
 
 ### Ejemplos de código
 
-La carpeta [`ejemplos`](ejemplos) contiene módulos pequeños, comentados y probados, que muestran técnicas útiles para el laboratorio. Cada uno tiene su testbench.
+La carpeta [`ejemplos`](ejemplos) contiene los códigos de los fundamentos, completos, comentados y con su testbench.
 
 | Archivo | Contenido |
 |---|---|
 | `base_tiempo.v` | Pulso de un ciclo cada *N* milisegundos, a partir de `CLK_FREQ` |
-| `sincronizador.v` | Sincronizador de dos flip-flops con ancho configurable |
-| `bin6_a_bcd.v` | Conversión de 6 bits a BCD con *double dabble*, combinacional |
-| `bin6_a_bcd_sec.v` | La misma conversión, secuencial, con *handshake* `iniciar` / `listo` |
-| `funciones_lcd.v` | Funciones para armar instrucciones de posición y códigos de caracteres |
-| `tb_revisar_pantalla.v` | Testbench que revisa un campo de la pantalla con el modelo de la LCD |
+| `parpadeo.v` | Máquina de estados en tres bloques, con estados de duración fija |
+| `semaforo.v`, `espera.v` | Maestro y trabajador que se comunican con `iniciar` y `listo` |
+| `funciones_lcd.v` | Funciones para textos, posición del cursor y cifras |
+| `bin6_a_bcd.v` | Conversión de 6 bits a dos cifras decimales |
+| `sincronizador.v` | Sincronizador de dos flip-flops |
+| `tb_revisar_pantalla.v` | Testbench que revisa una parte de la pantalla con el modelo de la LCD |
 
 ### Contenido de la carpeta
 
@@ -42,12 +43,12 @@ La carpeta [`ejemplos`](ejemplos) contiene módulos pequeños, comentados y prob
 ├── README.md
 ├── Parte1_Texto_Estatico.md
 ├── Parte2_Texto_Dinamico.md
-├── Fundamentos.md
+├── Fundamentos.md           fundamentos básicos con códigos explicados
 ├── lcd016n002bcfhet.pdf     hoja de datos de la pantalla
 ├── figs/                    figuras de las guías
 ├── src/                     código base
 ├── test/                    modelo de la pantalla y testbench
-└── ejemplos/                módulos de apoyo con sus testbenches
+└── ejemplos/                códigos de los fundamentos, con sus testbenches
 ```
 
 ### Simulación rápida
