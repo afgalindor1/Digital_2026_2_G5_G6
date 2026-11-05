@@ -257,7 +257,7 @@ La siguiente división es una sugerencia; el grupo puede proponer otra justific�
     ```
 
   - Imágenes de simulación de cada módulo y del sistema completo.
-  - Enlace al video de la demostración.
+
 
 Estructura sugerida del repositorio:
 
