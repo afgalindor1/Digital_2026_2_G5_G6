@@ -315,7 +315,7 @@ Comunicación con `lcd_escritura` (*handshake*):
     - la arquitectura completa, separando la unidad de control, la ruta de datos y el módulo de escritura;
     - la máquina de estados de `lcd_ctrl.v` y la de `lcd_escritura.v`.
 
-    Para obtener un diagrama de estados a partir del código: los estados son las constantes `localparam` del registro de estado; las transiciones y sus condiciones están en el bloque `always @(*)` del siguiente estado; la línea `siguiente = estado;` es la flecha que vuelve al mismo estado cuando no se cumple ninguna condición. Los [fundamentos](Fundamentos.md#3-máquinas-de-estados-en-verilog) muestran el procedimiento completo con un ejemplo.
+    Para obtener un diagrama de estados a partir del código: los estados son las constantes `localparam` del registro de estado; las transiciones y sus condiciones están en el bloque `always @(*)` del siguiente estado; la línea `siguiente = estado;` es la flecha que vuelve al mismo estado cuando no se cumple ninguna condición. Los [fundamentos básicos](Fundamentos.md#3-máquinas-de-estados) (tema 3) muestran el procedimiento con un ejemplo.
 
 3. **Personalizar** el texto: escribir en `LINEA1` y `LINEA2` (archivo `lcd_top.v`) un texto del grupo, por ejemplo el número del grupo y los apellidos, con exactamente 16 caracteres por fila y sin tildes.
 4. **Simular** con el testbench y el modelo de la pantalla (sección 4) y revisar las formas de onda.

@@ -35,7 +35,7 @@
 
 ## 2. Fundamento teórico
 
-Esta sección resume lo necesario para la Parte 2. Los [fundamentos básicos](Fundamentos.md) explican cada técnica con un código sencillo, y la carpeta [`ejemplos`](ejemplos) contiene esos códigos completos, comentados y con su testbench.
+Esta sección resume lo necesario para la Parte 2. Los [fundamentos básicos](Fundamentos.md) explican los términos más importantes y muestran un código genérico de cómo se hace cada técnica.
 
 ### 2.1 Texto dinámico y actualización de la pantalla
 
@@ -94,13 +94,13 @@ Resultado: 2, 4, 3.
 |---|---|---|
 | Caracteres por valor | 2 | 3 |
 | Conversión | Separar los nibbles y convertir cada uno | Convertir a BCD y luego cada cifra |
-| Código de apoyo | Función `ascii_hex` de [`ejemplos/funciones_lcd.v`](ejemplos/funciones_lcd.v) | [`ejemplos/bin6_a_bcd.v`](ejemplos/bin6_a_bcd.v) (6 bits, hay que llevarlo a 8) y función `ascii_digito` |
+| Código genérico | [Fundamentos, tema 7](Fundamentos.md#7-del-número-a-los-caracteres): función `ascii_hex` | [Fundamentos, tema 7](Fundamentos.md#7-del-número-a-los-caracteres): conversión de 6 bits, hay que llevarla a 8 |
 
 ### 2.3 Entradas desde los interruptores
 
 Los interruptores DIP de la tarjeta son **activos en bajo**: encendido = 0. Para que un interruptor encendido valga 1, la entrada se invierte (`~sw_n`) en el módulo superior.
 
-Los interruptores pueden cambiar en cualquier momento respecto al reloj. Como en el Lab 4, se recomienda pasarlos por un **sincronizador de dos flip-flops** antes de usarlos ([`ejemplos/sincronizador.v`](ejemplos/sincronizador.v)).
+Los interruptores pueden cambiar en cualquier momento respecto al reloj. Como en el Lab 4, se recomienda pasarlos por un **sincronizador de dos flip-flops** antes de usarlos ([fundamentos, tema 8](Fundamentos.md#8-leer-los-interruptores)).
 
 También se recomienda **copiar los dos valores en registros al comenzar cada refresco** y escribir los caracteres a partir de esas copias. Así, si un valor cambia mientras se escriben sus cifras, la pantalla no muestra una mezcla del valor anterior y del nuevo.
 
@@ -171,10 +171,8 @@ El controlador de la LCD debe recibir los dos valores como **entradas de 8 bits*
 
 - Sincronizar los interruptores y copiar los valores al comenzar cada refresco (sección 2.3).
 - Escribir el periodo de refresco como un parámetro (por ejemplo, `T_REFRESCO_MS`), para usar un valor pequeño en simulación y 100 ms en la tarjeta.
-- Generar el pulso de cada segundo con [`ejemplos/base_tiempo.v`](ejemplos/base_tiempo.v).
-- Usar las funciones de [`ejemplos/funciones_lcd.v`](ejemplos/funciones_lcd.v) para armar las instrucciones de posición y los códigos de los caracteres.
-
-Los módulos de la carpeta `ejemplos` pueden usarse o adaptarse; en ese caso se explican en la bitácora como parte del diseño del grupo.
+- Generar el pulso de cada segundo con un contador, como en el Lab 4 ([fundamentos, tema 2](Fundamentos.md#2-medir-tiempo-con-un-contador)).
+- Armar las instrucciones de posición y los códigos de los caracteres con funciones ([fundamentos, temas 6 y 7](Fundamentos.md#6-ubicar-el-cursor)).
 
 ### 3.6 Pasos sugeridos
 
@@ -183,7 +181,7 @@ Los módulos de la carpeta `ejemplos` pueden usarse o adaptarse; en ese caso se 
 3. Dibujar el diagrama de estados modificado: qué estados nuevos forman el lazo de refresco y cómo se llega a ellos desde la secuencia de la Parte 1.
 4. Agregar a la ruta de datos lo necesario para el lazo: un contador para saber qué carácter del valor se envía, la conversión del valor a caracteres y las nuevas entradas del multiplexor `dato_sel`.
 5. Ajustar la lógica de `iniciar` para el estado de espera (sección 2.4).
-6. Simular el controlador con valores fijos en el testbench y cambiarlos durante la simulación. [`ejemplos/tb_revisar_pantalla.v`](ejemplos/tb_revisar_pantalla.v) muestra cómo revisar una parte de la pantalla.
+6. Simular el controlador con valores fijos en el testbench y cambiarlos durante la simulación. El [tema 9 de los fundamentos](Fundamentos.md#9-simular-con-el-modelo-de-la-lcd) muestra cómo revisar una parte de la pantalla.
 7. Cuando la simulación funcione, crear el módulo superior con los interruptores y el contador, y llevar el diseño a la tarjeta.
 
 ---

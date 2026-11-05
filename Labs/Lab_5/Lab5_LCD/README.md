@@ -10,7 +10,7 @@ Máquinas de estados, unidad de control y ruta de datos, e interfaz con un perif
 
 ## [Fundamentos básicos](Fundamentos.md)
 
-Las técnicas de Verilog que usa el laboratorio, cada una con un código sencillo y explicado: medir tiempo con un contador, máquinas de estados, *handshake* entre dos máquinas, textos, posición del cursor, conversión de números a caracteres, lectura de interruptores y simulación con el modelo de la LCD.
+Teoría básica del laboratorio, con los términos más importantes de cada tema y un código genérico en Verilog de cómo se hace. Temas: medir tiempo con un contador, máquinas de estados, *handshake* entre dos máquinas, textos, posición del cursor, conversión de números a caracteres, lectura de interruptores, simulación con el modelo de la LCD y problemas frecuentes en la tarjeta.
 
 ---
 
@@ -21,21 +21,7 @@ Las técnicas de Verilog que usa el laboratorio, cada una con un código sencill
 | [`src`](src) | `lcd_escritura.v`, `lcd_ctrl.v`, `lcd_top.v` | Controlador de la LCD en modo de 8 bits |
 | [`test`](test) | `modelo_lcd.v`, `tb_lcd.v` | Modelo de la pantalla y testbench |
 
-Cada grupo copia estas carpetas para su uso.
-
-### Ejemplos de código
-
-La carpeta [`ejemplos`](ejemplos) contiene los códigos de los fundamentos, completos, comentados y con su testbench.
-
-| Archivo | Contenido |
-|---|---|
-| `base_tiempo.v` | Pulso de un ciclo cada *N* milisegundos, a partir de `CLK_FREQ` |
-| `parpadeo.v` | Máquina de estados en tres bloques, con estados de duración fija |
-| `semaforo.v`, `espera.v` | Maestro y trabajador que se comunican con `iniciar` y `listo` |
-| `funciones_lcd.v` | Funciones para textos, posición del cursor y cifras |
-| `bin6_a_bcd.v` | Conversión de 6 bits a dos cifras decimales |
-| `sincronizador.v` | Sincronizador de dos flip-flops |
-| `tb_revisar_pantalla.v` | Testbench que revisa una parte de la pantalla con el modelo de la LCD |
+Cada grupo copia estas carpetas en su repositorio de entrega.
 
 ### Contenido de la carpeta
 
@@ -43,12 +29,11 @@ La carpeta [`ejemplos`](ejemplos) contiene los códigos de los fundamentos, comp
 ├── README.md
 ├── Parte1_Texto_Estatico.md
 ├── Parte2_Texto_Dinamico.md
-├── Fundamentos.md           fundamentos básicos con códigos explicados
+├── Fundamentos.md           teoría básica con códigos genéricos
 ├── lcd016n002bcfhet.pdf     hoja de datos de la pantalla
 ├── figs/                    figuras de las guías
 ├── src/                     código base
-├── test/                    modelo de la pantalla y testbench
-└── ejemplos/                códigos de los fundamentos, con sus testbenches
+└── test/                    modelo de la pantalla y testbench
 ```
 
 ### Simulación rápida

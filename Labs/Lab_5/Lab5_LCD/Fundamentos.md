@@ -1,13 +1,8 @@
 # Laboratorio 5 – Fundamentos básicos
 
-Este documento reúne las técnicas de Verilog que se usan en el laboratorio, cada una con un código sencillo y explicado. Cada sección tiene la misma estructura:
+Este documento resume la teoría básica que se necesita para el laboratorio. Cada tema explica los **términos más importantes** y muestra un **código genérico en Verilog** de cómo se hace. Los códigos son fragmentos cortos para entender la técnica, no archivos para copiar tal cual.
 
-1. **La idea**, en pocas palabras.
-2. **Un código corto**, tomado de la carpeta [`ejemplos`](ejemplos), donde está completo y con su testbench.
-3. **La explicación** de las líneas importantes.
-4. **Dónde se usa** en el laboratorio.
-
-| Parte | Secciones más útiles |
+| Parte | Temas más útiles |
 |---|---|
 | Parte 1: entender el código base | 1 a 5 y 9 |
 | Parte 2: mostrar valores que cambian | 2, 4, 6, 7, 8 y 9 |
@@ -18,28 +13,28 @@ Este documento reúne las técnicas de Verilog que se usan en el laboratorio, ca
 
 1. [La LCD vista desde la FPGA](#1-la-lcd-vista-desde-la-fpga)
 2. [Medir tiempo con un contador](#2-medir-tiempo-con-un-contador)
-3. [Máquinas de estados en Verilog](#3-máquinas-de-estados-en-verilog)
-4. [Dos máquinas que trabajan juntas: *handshake*](#4-dos-máquinas-que-trabajan-juntas-handshake)
+3. [Máquinas de estados](#3-máquinas-de-estados)
+4. [Unidad de control, ruta de datos y *handshake*](#4-unidad-de-control-ruta-de-datos-y-handshake)
 5. [Textos en Verilog](#5-textos-en-verilog)
 6. [Ubicar el cursor](#6-ubicar-el-cursor)
 7. [Del número a los caracteres](#7-del-número-a-los-caracteres)
 8. [Leer los interruptores](#8-leer-los-interruptores)
 9. [Simular con el modelo de la LCD](#9-simular-con-el-modelo-de-la-lcd)
 10. [Problemas frecuentes en la tarjeta](#10-problemas-frecuentes-en-la-tarjeta)
-11. [Para ir más allá: caracteres personalizados](#11-para-ir-más-allá-caracteres-personalizados)
 
 ---
 
 ## 1. La LCD vista desde la FPGA
 
-**La idea.** Para la FPGA, la LCD es un dispositivo al que se le envían bytes, uno a la vez. Cada byte es una **instrucción** (`RS = 0`), por ejemplo "borrar" o "ubicar el cursor", o el **código de un carácter** (`RS = 1`). La LCD nunca se lee: `R/W` vale siempre 0.
+**Términos clave**
 
-Para enviar un byte la FPGA hace cuatro pasos:
+- **Instrucción:** byte que le da una orden a la LCD (borrar, encender, ubicar el cursor). Se envía con `RS = 0`.
+- **Dato:** byte con el código del carácter que se va a mostrar. Se envía con `RS = 1`.
+- **E (*Enable*):** señal que indica a la LCD cuándo leer el bus. La LCD captura el byte en el **flanco de bajada** de E (cuando E pasa de 1 a 0).
+- **Tiempo de ejecución:** lo que tarda la LCD en procesar un byte: 39 µs a 43 µs, o 1,53 ms para Clear Display. Durante ese tiempo ignora cualquier byte nuevo.
+- **Inicialización:** secuencia de instrucciones que deja la LCD lista para escribir después de encenderla (Parte 1, sección 2.6).
 
-1. Pone `RS` y el byte en el bus `D7–D0`.
-2. Sube `E`.
-3. Baja `E`: **en ese flanco de bajada la LCD captura el byte**.
-4. Espera a que la LCD termine de ejecutarlo (39 µs a 43 µs, o 1,53 ms para Clear Display) antes de enviar el siguiente.
+Para enviar un byte, la FPGA pone `RS` y el byte en el bus, sube E, baja E y espera el tiempo de ejecución. `R/W` vale siempre 0, porque la LCD solo se escribe.
 
 <p align="center">
  <img src="figs/ciclo_escritura.png" alt="Ciclo de escritura" width=750 >
@@ -52,93 +47,82 @@ Por ejemplo, para escribir `A` al comienzo de la fila 2 se envían dos bytes:
 
 | Byte | RS | Significado |
 |---|---|---|
-| 0xC0 | 0 | Instrucción: ubicar el cursor en la fila 2, columna 0 (sección 6) |
+| 0xC0 | 0 | Instrucción: ubicar el cursor en la fila 2, columna 0 (tema 6) |
 | 0x41 | 1 | Carácter `A` |
 
-Antes de escribir caracteres, la LCD debe **inicializarse** con la secuencia de la hoja de datos (Parte 1, sección 2.6).
-
-**Dónde se usa.** `lcd_escritura.v` hace los cuatro pasos para un byte; `lcd_ctrl.v` decide qué bytes se envían y en qué orden.
+**En el laboratorio:** `lcd_escritura.v` envía un byte; `lcd_ctrl.v` decide qué bytes enviar y en qué orden.
 
 ---
 
 ## 2. Medir tiempo con un contador
 
-**La idea.** En la FPGA el tiempo se mide contando ciclos de reloj. Con un reloj de 50 MHz cada ciclo dura 20 ns, así que un intervalo *t* equivale a:
+**Términos clave**
 
-$$N = t \cdot f_{clk}$$
+- **Ciclo de reloj:** con un reloj de 50 MHz, cada ciclo dura 20 ns. Un intervalo *t* equivale a *N* = *t* · *f*<sub>clk</sub> ciclos: 1 µs son 50 ciclos, 1 ms son 50 000 y 1 s son 50 000 000.
+- **`localparam`:** constante calculada al sintetizar. No genera hardware; si cambia la frecuencia del reloj, se recalcula sola.
+- **`$clog2(N)`:** número de bits que necesita un contador para contar de 0 a *N* – 1.
+- **Habilitación (*tick*):** pulso de un ciclo que indica "ahora". Se usa con `if (tick)` dentro de un bloque con `clk`, **nunca como reloj**.
 
-| Intervalo | Ciclos a 50 MHz |
-|---|---|
-| 1 µs | 50 |
-| 1 ms | 50 000 |
-| 100 ms | 5 000 000 |
-| 1 s | 50 000 000 |
-
-Un contador que va de 0 a *N* – 1 necesita los bits para representar *N* – 1. En Verilog, `$clog2(N)` calcula ese número de bits.
-
-**El código** ([`ejemplos/base_tiempo.v`](ejemplos/base_tiempo.v)): genera un pulso de un ciclo (`tick`) cada `PERIODO_MS` milisegundos.
+**Cómo se hace en Verilog:** un contador que da un pulso cada `PERIODO_MS` milisegundos.
 
 ```verilog
 localparam N = (CLK_FREQ / 1000) * PERIODO_MS;   // ciclos por periodo
 localparam W = $clog2(N);                        // bits del contador
-localparam [W-1:0] MAX = N[W-1:0] - 1'b1;        // último valor de la cuenta
 
 reg [W-1:0] cuenta;
+reg         tick;
 
 always @(posedge clk)
     if (rst) begin
         cuenta <= 0;
         tick   <= 1'b0;
-    end else if (cuenta == MAX) begin            // llegó al final:
-        cuenta <= 0;                             //   vuelve a empezar
-        tick   <= 1'b1;                          //   y da un pulso
+    end else if (cuenta == N - 1) begin          // llegó al final del periodo
+        cuenta <= 0;
+        tick   <= 1'b1;                          // pulso de un ciclo
     end else begin
         cuenta <= cuenta + 1'b1;
         tick   <= 1'b0;
     end
-```
 
-**La explicación.**
-
-- Los `localparam` se calculan al sintetizar: no generan hardware. Si cambia `CLK_FREQ`, todo se recalcula solo.
-- `MAX` tiene el mismo ancho que el contador, así la comparación `cuenta == MAX` es entre dos números de *W* bits.
-- `tick` dura un solo ciclo. Se usa como **habilitación**, nunca como reloj:
-
-```verilog
-// Contador de segundos: cambia una vez por segundo, pero sigue usando clk
+// Uso del pulso como habilitación: un contador de segundos (con PERIODO_MS = 1000)
 always @(posedge clk)
-    if (rst)          segundos <= 0;
-    else if (tick_1s) segundos <= segundos + 1'b1;
+    if (rst)       segundos <= 0;
+    else if (tick) segundos <= segundos + 1'b1;
 ```
 
-**Dónde se usa.** `lcd_escritura.v` mide así los tiempos de cada byte y `lcd_ctrl.v` la espera de encendido. En la Parte 2 sirve para el contador del valor B y para el periodo de refresco.
+**En el laboratorio:** así se miden los tiempos de cada byte y la espera de encendido. En la Parte 2 sirve para el contador del valor B y para el periodo de refresco.
 
 ---
 
-## 3. Máquinas de estados en Verilog
+## 3. Máquinas de estados
 
-**La idea.** Una máquina de estados está en un solo estado a la vez y pasa de uno a otro cuando se cumple una condición. En Verilog se describe en **tres bloques**, cada uno con una sola función.
+**Términos clave**
 
-**El código** ([`ejemplos/parpadeo.v`](ejemplos/parpadeo.v)): un LED que se enciende `T_ON_MS` milisegundos y se apaga `T_OFF_MS` milisegundos.
+- **Estado:** cada paso de una secuencia. La máquina está en un solo estado a la vez.
+- **Transición:** paso de un estado a otro cuando se cumple una **condición**.
+- **Máquina de Moore:** las salidas dependen solo del estado actual.
+- **Registro de estado:** los flip-flops que guardan el estado actual.
+- **Lógica de siguiente estado:** lógica combinacional que decide el próximo estado según el estado actual y las entradas.
+- **Lógica de salida:** decide el valor de las salidas en cada estado.
+- **Diagrama de estados:** círculos (estados) y flechas (transiciones) con su condición.
+- **Tabla de transiciones:** la misma información que el diagrama, en forma de tabla.
+
+**Cómo se hace en Verilog:** tres bloques, uno por cada parte. El ejemplo es un LED que está encendido un tiempo y apagado otro.
 
 ```verilog
 localparam ENCENDIDO = 1'b0,
            APAGADO   = 1'b1;
 
-reg         estado, siguiente;
-reg [W-1:0] cuenta;                     // ciclos que lleva en el estado actual
+reg estado, siguiente;
 
-wire fin_on  = (cuenta == MAX_ON);
-wire fin_off = (cuenta == MAX_OFF);
-
-// 1. Registro de estado: guarda el estado actual
+// 1. Registro de estado
 always @(posedge clk)
-    if (rst) estado <= ENCENDIDO;
+    if (rst) estado <= ENCENDIDO;              // estado inicial
     else     estado <= siguiente;
 
-// 2. Lógica de siguiente estado: decide a dónde ir
+// 2. Lógica de siguiente estado
 always @(*) begin
-    siguiente = estado;                 // por defecto, quedarse
+    siguiente = estado;                        // por defecto, quedarse
     case (estado)
         ENCENDIDO: if (fin_on)  siguiente = APAGADO;
         APAGADO:   if (fin_off) siguiente = ENCENDIDO;
@@ -151,36 +135,32 @@ always @(posedge clk)
     if (rst || estado != siguiente) cuenta <= 0;
     else                            cuenta <= cuenta + 1'b1;
 
-// 3. Salida registrada
+assign fin_on  = (cuenta == N_ON  - 1);        // condiciones de salida de cada estado
+assign fin_off = (cuenta == N_OFF - 1);
+
+// 3. Lógica de salida (registrada)
 always @(posedge clk)
     if (rst) led <= 1'b0;
     else     led <= (siguiente == ENCENDIDO);
 ```
 
-**La explicación.**
+- En los bloques con `posedge clk` se usa `<=`; en `always @(*)` se usa `=`.
+- `siguiente = estado;` al comienzo del bloque evita olvidar casos: si no se cumple ninguna condición, la máquina se queda en el mismo estado.
+- **Estados con duración:** un solo contador mide el tiempo de todos los estados, porque vuelve a 0 cada vez que la máquina cambia de estado.
+- **Salida registrada:** la salida sale de un flip-flop, sin pulsos espurios. Usar `siguiente` en lugar de `estado` evita que cambie un ciclo tarde.
 
-| Bloque | Qué contiene | Cómo se escribe |
-|---|---|---|
-| 1. Registro de estado | El estado actual y su valor después del reset | `always @(posedge clk)`, asignación `<=` |
-| 2. Siguiente estado | Las transiciones y sus condiciones | `always @(*)`, asignación `=` |
-| 3. Salida | El valor de cada salida según el estado | Aquí, registrada con `<=` |
+**Del código al diagrama:**
 
-- La línea `siguiente = estado;` evita olvidar un caso: si no se cumple ninguna condición, la máquina se queda donde está.
-- **Estados con duración.** Un solo contador sirve para todos los estados: se pone en 0 cada vez que la máquina cambia de estado (`estado != siguiente`), así en cada estado la cuenta empieza desde 0.
-- **Salida registrada.** `led <= (siguiente == ENCENDIDO)` hace que la salida salga de un flip-flop, sin pulsos espurios. Usar `siguiente` en lugar de `estado` evita que la salida cambie un ciclo tarde.
-
-**Del código al diagrama.** Para dibujar el diagrama de estados de un código:
-
-1. Los **estados** son las constantes `localparam` que toma el registro de estado.
-2. Las **flechas** están en el bloque de siguiente estado: cada `if` es una flecha y su condición es la etiqueta.
-3. La línea `siguiente = estado;` es la flecha que vuelve al mismo estado cuando la condición no se cumple.
+1. Los **estados** son las constantes `localparam` del registro de estado.
+2. Cada `if` del bloque de siguiente estado es una **flecha**, y su condición es la etiqueta.
+3. `siguiente = estado;` es la flecha que vuelve al mismo estado cuando la condición no se cumple.
 4. El **estado inicial** es el que se asigna en el reset.
 
 <p align="center">
- <img src="figs/fsm_parpadeo.png" alt="Diagrama de estados de parpadeo.v" width=650 >
+ <img src="figs/fsm_parpadeo.png" alt="Diagrama de estados" width=650 >
 </p>
 <p align="center">
- Figura 2: Diagrama de estados de parpadeo.v
+ Figura 2: Diagrama de estados del código anterior
 </p>
 
 | Estado actual | Condición | Siguiente estado | Salida |
@@ -190,22 +170,28 @@ always @(posedge clk)
 | APAGADO | `fin_off = 0` | APAGADO | `led = 0` |
 | APAGADO | `fin_off = 1` | ENCENDIDO | `led = 0` |
 
-**Errores frecuentes.**
+**Errores frecuentes:**
 
-- Una señal que no recibe valor en todos los casos de un `always @(*)` crea un *latch* (Quartus avisa: *inferring latch(es)*). Se evita dando un valor por defecto al comienzo del bloque.
+- Una señal que no recibe valor en todos los casos de un `always @(*)` crea un *latch* (Quartus avisa: *inferring latch(es)*).
 - Asignar la misma señal en dos bloques `always` es un error (*multiple constant drivers*).
-- Usar una señal como reloj (`always @(posedge tick)`) crea problemas de tiempo en la tarjeta. Todo el diseño usa `clk`.
+- Usar una señal como reloj (`always @(posedge tick)`) causa problemas en la tarjeta.
 
-**Dónde se usa.** `lcd_escritura.v` tiene la misma estructura que `parpadeo.v`, con cuatro estados en lugar de dos. `lcd_ctrl.v` también usa los tres bloques.
+**En el laboratorio:** `lcd_escritura.v` y `lcd_ctrl.v` usan esta misma estructura.
 
 ---
 
-## 4. Dos máquinas que trabajan juntas: *handshake*
+## 4. Unidad de control, ruta de datos y *handshake*
 
-**La idea.** Cuando una tarea se repite muchas veces, conviene ponerla en un módulo propio con su propia máquina de estados. Un módulo **maestro** decide **qué** hacer; un módulo **trabajador** sabe **cómo** hacerlo. Se comunican con dos señales:
+**Términos clave**
 
-- **`iniciar`** (del maestro al trabajador): un pulso de un ciclo que pide la tarea. Los datos de la tarea deben estar listos en ese mismo ciclo.
-- **`listo`** (del trabajador al maestro): un pulso de un ciclo que avisa que la tarea terminó.
+- **Ruta de datos:** registros, contadores, memorias y multiplexores que guardan y transforman los datos.
+- **Unidad de control:** la máquina de estados que decide qué hace la ruta de datos en cada momento.
+- **Señal de control:** de la unidad de control a la ruta de datos (por ejemplo, "incrementa el contador").
+- **Señal de estado:** de la ruta de datos a la unidad de control (por ejemplo, "el contador llegó a 15").
+- **Maestro y trabajador:** cuando una tarea se repite muchas veces, se pone en un módulo propio (trabajador) que sabe **cómo** hacerla; otro módulo (maestro) decide **qué** hacer y cuándo.
+- ***Handshake*:** acuerdo de comunicación entre el maestro y el trabajador con dos señales:
+    - **`iniciar`** (maestro → trabajador): pulso de un ciclo que pide la tarea. Los datos de la tarea deben estar listos en ese mismo ciclo.
+    - **`listo`** (trabajador → maestro): pulso de un ciclo que avisa que la tarea terminó.
 
 <p align="center">
  <img src="figs/handshake.png" alt="Handshake iniciar listo" width=750 >
@@ -214,126 +200,114 @@ always @(posedge clk)
  Figura 3: Handshake entre un maestro y un trabajador
 </p>
 
-**El código** ([`ejemplos/semaforo.v`](ejemplos/semaforo.v) y [`ejemplos/espera.v`](ejemplos/espera.v)): un semáforo (maestro) que en cada color le pide a un módulo de espera (trabajador) que espere la duración de ese color.
+**Cómo se hace en Verilog:**
 
 ```verilog
-// Maestro: cambia de color cada vez que termina la espera
+// ---------------- Trabajador: espera la orden, hace la tarea y avisa
 always @(*) begin
     siguiente = estado;
     case (estado)
-        VERDE:    if (listo) siguiente = AMARILLO;
-        AMARILLO: if (listo) siguiente = ROJO;
-        ROJO:     if (listo) siguiente = VERDE;
-        default:             siguiente = VERDE;
+        REPOSO:  if (iniciar)   siguiente = OCUPADO;
+        OCUPADO: if (fin_tarea) siguiente = REPOSO;
+        default:                siguiente = REPOSO;
     endcase
 end
 
-// Dato de la tarea: la duración del color actual (multiplexor)
-always @(*)
+always @(posedge clk)                            // guarda el dato al recibir la orden
+    if (estado == REPOSO && iniciar) dato_guardado <= dato;
+
+always @(posedge clk)                            // pulso de un ciclo al terminar
+    if (rst) listo <= 1'b0;
+    else     listo <= (estado == OCUPADO) && fin_tarea;
+
+
+// ---------------- Maestro: avanza de paso cada vez que el trabajador termina
+always @(*) begin
+    siguiente = estado;
     case (estado)
-        VERDE:    duracion = C_VERDE;
-        AMARILLO: duracion = C_AMARILLO;
-        default:  duracion = C_ROJO;
+        PASO_A:  if (listo) siguiente = PASO_B;
+        PASO_B:  if (listo) siguiente = PASO_C;
+        PASO_C:  if (listo) siguiente = FIN;
+        default:            siguiente = estado;
+    endcase
+end
+
+always @(*)                                      // dato de la tarea según el paso (multiplexor)
+    case (estado)
+        PASO_A:  dato = VALOR_A;
+        PASO_B:  dato = VALOR_B;
+        default: dato = VALOR_C;
     endcase
 
-// Pedir una espera al salir del reset y cada vez que llega listo
-always @(posedge clk)
-    if (rst) iniciar <= 1'b0;
-    else     iniciar <= en_reset || listo;
+always @(posedge clk) en_reset <= rst;           // vale 1 en el primer ciclo después del reset
 
-// Trabajador
-espera #(.ANCHO(ANCHO)) u_espera (
-    .clk(clk), .rst(rst),
-    .iniciar(iniciar), .ciclos(duracion), .listo(listo)
-);
+always @(posedge clk)                            // primera orden al salir del reset y
+    if (rst) iniciar <= 1'b0;                    // una nueva un ciclo después de cada listo
+    else     iniciar <= en_reset || (listo && siguiente != FIN);
 ```
 
-**La explicación.**
+- El maestro no sabe cómo se hace la tarea; el trabajador no sabe qué paso de la secuencia se está ejecutando.
+- `iniciar` sube un ciclo después de `listo`. En ese ciclo el estado del maestro ya cambió, así que `dato` ya corresponde al nuevo paso.
+- Un estado del maestro que no deba pedir tareas (como `FIN`, o un estado de espera) se excluye de la lógica de `iniciar`.
 
-- El semáforo no cuenta tiempo: solo sabe en qué color está y cuánto debe durar.
-- `espera.v` guarda `ciclos` en el ciclo en que recibe `iniciar`, cuenta y da el pulso de `listo` al terminar.
-- `iniciar` sube un ciclo **después** de `listo`. En ese ciclo el estado ya cambió, de modo que `duracion` ya corresponde al nuevo color.
-- Cada color dura 2 ciclos más que la espera pedida: uno para pasar la orden y otro para recibir el aviso. Como los tiempos de la LCD son mínimos, esos ciclos de más no causan problemas.
-
-**Dónde se usa.** El código base tiene exactamente esta organización:
-
-| Ejemplo | Código base |
-|---|---|
-| `semaforo.v` (maestro) | `lcd_ctrl.v` |
-| `espera.v` (trabajador) | `lcd_escritura.v` |
-| `duracion` (dato de la tarea) | `dato_sel` y `rs_sel` (byte que se envía) |
-| Estados VERDE, AMARILLO, ROJO | Estados CONFIG, DIR_LINEA1, LINEA1_TXT, … |
-
-En la Parte 2, los estados nuevos del lazo de refresco también le piden bytes a `lcd_escritura` con `iniciar` y avanzan con `listo`.
+**En el laboratorio:** `lcd_ctrl.v` es el maestro y `lcd_escritura.v` el trabajador; el dato de la tarea es el byte y `RS`. En la Parte 2, los estados nuevos piden bytes de la misma forma.
 
 ---
 
 ## 5. Textos en Verilog
 
-**La idea.** Un texto entre comillas es un vector con los códigos ASCII de sus caracteres, 8 bits por carácter, con el **primer carácter en los bits más significativos**.
+**Términos clave**
+
+- **Código ASCII:** número de 8 bits que representa un carácter. En la LCD, letras, cifras y signos comunes usan los códigos ASCII (`A` = 0x41, `0` = 0x30, espacio = 0x20).
+- **Cadena:** texto entre comillas. Verilog la guarda como un vector de 8 bits por carácter, con el **primer carácter en los bits más significativos**.
+- **Selección indexada (`+:`):** toma un grupo de bits a partir de una posición que puede ser una señal.
+
+**Cómo se hace en Verilog:**
 
 ```verilog
-localparam [8*4-1:0] SALUDO = "Hola";
-// SALUDO[31:24] = "H" = 8'h48
-// SALUDO[23:16] = "o" = 8'h6F
-// SALUDO[15:8]  = "l" = 8'h6C
-// SALUDO[7:0]   = "a" = 8'h61
-```
+localparam [8*16-1:0] TEXTO = "Hola mundo      ";   // exactamente 16 caracteres
+// TEXTO[127:120] = "H" = 8'h48   (primer carácter)
+// TEXTO[7:0]     = " " = 8'h20   (último carácter)
 
-**El código** ([`ejemplos/funciones_lcd.v`](ejemplos/funciones_lcd.v)): extraer el carácter número `c` (0 = el de la izquierda) de un texto de 16 caracteres.
-
-```verilog
+// Carácter número c (0 = el de la izquierda)
 function [7:0] caracter(input [8*16-1:0] texto, input [3:0] c);
-    caracter = texto[8*(15 - c) +: 8];
+    caracter = texto[8*(15 - c) +: 8];               // 8 bits desde el bit 8*(15-c)
 endfunction
 ```
 
-**La explicación.**
+**Cuidado:** si la cadena tiene menos caracteres que el vector, Verilog completa con ceros a la izquierda, y el código 0x00 no es un espacio en la LCD (muestra un carácter con cualquier dibujo). Por eso los textos tienen exactamente 16 caracteres, completando con espacios.
 
-- El carácter 0 está en los bits 127 a 120, el 1 en los bits 119 a 112, y así sucesivamente: el carácter `c` empieza en el bit `8*(15 - c)`.
-- `texto[inicio +: 8]` toma 8 bits a partir de `inicio`, hacia arriba. El inicio puede ser una señal (como un contador), siempre que el ancho (8) sea constante. El sintetizador lo convierte en un multiplexor.
-- **Cuidado con la longitud.** Si el texto tiene menos de 16 caracteres, Verilog completa con ceros a la izquierda, y el código 0x00 no es un espacio en la LCD: muestra un carácter personalizado con cualquier dibujo. Por eso los textos tienen exactamente 16 caracteres, completando con espacios.
-
-```verilog
-localparam [8*16-1:0] MAL  = "Hola";               // 12 bytes 0x00 y luego "Hola"
-localparam [8*16-1:0] BIEN = "Hola            ";   // "Hola" y 12 espacios
-```
-
-**Dónde se usa.** `lcd_ctrl.v` usa esta función con el contador `col` para enviar los 16 caracteres de cada fila.
+**En el laboratorio:** `lcd_ctrl.v` usa esta función con el contador `col` para enviar los 16 caracteres de cada fila.
 
 ---
 
 ## 6. Ubicar el cursor
 
-**La idea.** Cada posición de la pantalla tiene una dirección en la memoria de la LCD (DDRAM). La fila 1 empieza en 0x00 y la fila 2 en 0x40:
+**Términos clave**
 
-| Columna | 0 | 1 | 2 | … | 13 | 14 | 15 |
-|---|---|---|---|---|---|---|---|
-| **Fila 1** | 0x00 | 0x01 | 0x02 | … | 0x0D | 0x0E | 0x0F |
-| **Fila 2** | 0x40 | 0x41 | 0x42 | … | 0x4D | 0x4E | 0x4F |
-
-Para ubicar el cursor se envía la instrucción **Set DDRAM Address**: un 1 en el bit 7 seguido de la dirección.
-
-$$\text{instrucción} = \texttt{0x80} + \text{dirección}$$
+- **DDRAM:** memoria de la LCD donde se guarda el código de cada carácter que se ve. Cada posición de la pantalla tiene una dirección: la fila 1 va de 0x00 a 0x0F y la fila 2 de 0x40 a 0x4F.
+- **Contador de direcciones (AC):** indica dónde se guarda el siguiente carácter. Avanza solo después de cada carácter.
+- **Set DDRAM Address:** instrucción que mueve el cursor. Es un 1 en el bit 7 seguido de la dirección: instrucción = 0x80 + dirección.
 
 | Posición | Dirección | Instrucción | Binario |
 |---|---|---|---|
 | Fila 1, columna 9 | 0x09 | 0x89 | `1000 1001` |
 | Fila 2, columna 5 | 0x45 | 0xC5 | `1100 0101` |
 
-Después de ubicar el cursor, los caracteres se envían uno tras otro: la LCD avanza la dirección sola después de cada uno.
-
-**El código** ([`ejemplos/funciones_lcd.v`](ejemplos/funciones_lcd.v)):
+**Cómo se hace en Verilog:**
 
 ```verilog
+// fila: 0 = superior, 1 = inferior; columna: 0 a 15
 function [7:0] dir_ddram(input fila, input [3:0] columna);
-    dir_ddram = {1'b1, fila, 2'b00, columna};
+    dir_ddram = {1'b1, fila, 2'b00, columna};        // 1 | fila | 00 | columna
 endfunction
+
+// dir_ddram(1'b1, 4'd5) = 8'b1100_0101 = 8'hC5
 ```
 
-**La explicación.** En binario, la instrucción tiene un 1 fijo en el bit 7, la fila en el bit 6 (0 = fila 1, 1 = fila 2), dos ceros y la columna en los bits 3 a 0. Las llaves `{ }` concatenan esos campos. Por ejemplo, `dir_ddram(1'b1, 4'd5)` da `1 1 00 0101` = 0xC5.
+Las llaves `{ }` concatenan los campos: el bit 7 en 1, la fila en el bit 6, dos ceros y la columna en los bits 3 a 0.
 
-**Cuidado.** Si se escriben más de 16 caracteres seguidos, los sobrantes **no** pasan a la fila 2: quedan en direcciones que no se ven. Para escribir en la fila 2 siempre se ubica el cursor primero.
+**Cuidado:** si se escriben más de 16 caracteres seguidos, los sobrantes **no** pasan a la fila 2: quedan en posiciones de la DDRAM que no se ven. Para escribir en la fila 2 siempre se ubica el cursor primero.
 
 <p align="center">
  <img src="figs/ddram_ventana.png" alt="Ventana visible de la DDRAM" width=800 >
@@ -342,50 +316,37 @@ endfunction
  Figura 4: Cada fila de la DDRAM tiene 40 posiciones, pero solo se ven las primeras 16
 </p>
 
-**Dónde se usa.** `lcd_ctrl.v` envía 0x80 y 0xC0 antes de cada fila. En la Parte 2 se usa para ir a la posición de cada valor.
+**En el laboratorio:** `lcd_ctrl.v` envía 0x80 y 0xC0 antes de cada fila. En la Parte 2 se usa para ir a la posición de cada valor.
 
 ---
 
 ## 7. Del número a los caracteres
 
-**La idea.** La LCD muestra caracteres, no números. Para mostrar un número hay que convertir cada cifra en el código de su carácter. En la tabla de caracteres, las cifras están seguidas:
+**Términos clave**
 
-| Carácter | `0` | `1` | `2` | … | `9` |
-|---|---|---|---|---|---|
-| Código | 0x30 | 0x31 | 0x32 | … | 0x39 |
+- **Cifra a carácter:** en la LCD las cifras `0` a `9` tienen los códigos 0x30 a 0x39, es decir, código = 0x30 + cifra.
+- **Nibble:** grupo de 4 bits. Un número de 8 bits tiene dos: `num[7:4]` y `num[3:0]`. Cada nibble es una cifra hexadecimal (0 a F).
+- **BCD (*Binary-Coded Decimal*):** cada cifra decimal guardada en 4 bits. Por ejemplo, 243 en BCD es `0010 0100 0011`.
+- ***Double dabble*:** algoritmo para pasar de binario a BCD con desplazamientos y sumas de 3 (Parte 2, sección 2.2).
 
-### 7.1 Una cifra (0 a 9)
-
-```verilog
-function [7:0] ascii_digito(input [3:0] d);
-    ascii_digito = {4'h3, d};            // igual a 8'h30 + d
-endfunction
-```
-
-Como una cifra nunca pasa de 9, poner `0011` en los 4 bits altos y la cifra en los 4 bits bajos da el código. Ejemplo: 7 = `0111` → `0011 0111` = 0x37, el carácter `7`.
-
-### 7.2 Un número en hexadecimal (2 caracteres)
-
-Un número de 8 bits se separa en dos grupos de 4 bits: `num[7:4]` (el de la izquierda) y `num[3:0]`. Cada grupo vale de 0 a 15 y se convierte en un carácter:
+**Cómo se hace en Verilog: hexadecimal** (2 caracteres por número de 8 bits).
 
 ```verilog
+// Nibble (0 a 15) -> carácter '0'-'9' o 'A'-'F'
 function [7:0] ascii_hex(input [3:0] h);
-    ascii_hex = (h < 4'd10) ? {4'h3, h} : 8'h37 + {4'h0, h};
+    ascii_hex = (h < 4'd10) ? 8'h30 + h      // '0' a '9'
+                            : 8'h37 + h;     // 'A' a 'F': 'A' = 0x41 = 0x37 + 10
 endfunction
+
+// Ejemplo: num = 8'hB7
+// ascii_hex(num[7:4]) = 8'h42 ('B')    ascii_hex(num[3:0]) = 8'h37 ('7')
 ```
 
-- De 0 a 9 se usa el mismo truco de la sección 7.1.
-- De 10 a 15 se suma 0x37, porque la letra `A` está en 0x41 = 0x37 + 10.
-
-Ejemplo: 0xB7. `ascii_hex(4'hB)` = 0x42 (`B`) y `ascii_hex(4'h7)` = 0x37 (`7`).
-
-### 7.3 Un número en decimal (3 caracteres)
-
-Primero hay que separar el número en centenas, decenas y unidades (BCD). La Parte 2, sección 2.2, explica el algoritmo *double dabble* con un ejemplo paso a paso. Este código lo implementa para un número de 6 bits (0 a 63), que tiene dos cifras ([`ejemplos/bin6_a_bcd.v`](ejemplos/bin6_a_bcd.v)):
+**Cómo se hace en Verilog: decimal.** Primero se convierte a BCD y luego cada cifra se convierte en carácter. Este código aplica el *double dabble* a un número de 6 bits (0 a 63, dos cifras):
 
 ```verilog
 integer i;
-reg [13:0] r;   // [13:10] decenas | [9:6] unidades | [5:0] número binario
+reg [13:0] r;              // [13:10] decenas | [9:6] unidades | [5:0] número binario
 
 always @(*) begin
     r = {8'd0, bin};                                     // cifras en cero, número a la derecha
@@ -397,41 +358,43 @@ always @(*) begin
     decenas  = r[13:10];
     unidades = r[9:6];
 end
+
+// Cifra -> carácter
+assign car_decenas  = 8'h30 + decenas;
+assign car_unidades = 8'h30 + unidades;
 ```
 
-**La explicación.**
+- El `for` tiene límites fijos: el sintetizador lo convierte en 6 etapas de lógica. No es un lazo que se ejecute en el tiempo.
+- Para 8 bits hay que ajustar: cuántas cifras tiene el mayor valor (255), cuántos bits ocupa el registro, cuántas veces se repite el lazo y qué cifras se corrigen.
 
-- El `for` no es un lazo que se ejecute en el tiempo: tiene límites fijos y el sintetizador lo convierte en 6 etapas de lógica (comparadores y sumadores).
-- Dentro de `always @(*)` se usa `=`: cada línea usa el resultado de la anterior, como en un programa.
-- Para un número de 8 bits hay que responder: ¿cuántas cifras tiene el mayor valor (255)? ¿Cuántos bits necesita el registro? ¿Cuántas veces se repite el lazo? ¿Qué cifras se corrigen?
-
-**Dónde se usa.** En la Parte 2, según el formato que escoja el grupo.
+**En el laboratorio:** en la Parte 2, según el formato que escoja el grupo.
 
 ---
 
 ## 8. Leer los interruptores
 
-**La idea.** Los interruptores DIP de la tarjeta son **activos en bajo**: encendido = 0. Además, pueden cambiar en cualquier momento respecto al reloj. Por eso:
+**Términos clave**
 
-1. Se **invierten**, para que encendido = 1.
-2. Se pasan por un **sincronizador** de dos flip-flops, como en el Lab 4.
+- **Activo en bajo:** el interruptor vale 0 cuando está encendido. Para trabajar con encendido = 1 se invierte con `~`.
+- **Señal asíncrona:** puede cambiar en cualquier momento respecto al reloj, como un interruptor.
+- **Metaestabilidad:** si una entrada cambia justo en el flanco de reloj, el flip-flop puede quedar un instante en un valor indefinido.
+- **Sincronizador:** dos flip-flops en serie; el segundo entrega un valor estable.
+- **Muestreo:** copiar un valor en un registro en un momento elegido, para usar esa copia mientras el original cambia.
 
-**El código** ([`ejemplos/sincronizador.v`](ejemplos/sincronizador.v)):
+**Cómo se hace en Verilog:**
 
 ```verilog
-reg [ANCHO-1:0] etapa1;
-
+// Inversión y sincronizador de dos flip-flops
+reg [7:0] sw_s1, sw_s2;
 always @(posedge clk) begin
-    etapa1 <= d_async;      // primer flip-flop: puede quedar inestable un instante
-    q_sync <= etapa1;       // segundo flip-flop: ya tiene un valor estable
+    sw_s1 <= ~sw_n;          // primer flip-flop (puede quedar indefinido un instante)
+    sw_s2 <= sw_s1;          // segundo flip-flop: valor estable, encendido = 1
 end
-```
 
-Uso en el módulo superior:
-
-```verilog
-wire [7:0] sw_sinc;
-sincronizador #(.ANCHO(8)) u_sinc (.clk(clk), .d_async(~sw_n), .q_sync(sw_sinc));
+// Muestreo: copiar el valor antes de escribir sus cifras
+always @(posedge clk)
+    if (rst)            copia <= 8'd0;
+    else if (muestrear) copia <= sw_s2;     // muestrear: pulso de un ciclo
 ```
 
 <p align="center">
@@ -441,21 +404,20 @@ sincronizador #(.ANCHO(8)) u_sinc (.clk(clk), .d_async(~sw_n), .q_sync(sw_sinc))
  Figura 5: Sincronizador de dos flip-flops
 </p>
 
-**Copiar antes de escribir.** Escribir las cifras de un número toma varias escrituras. Si el número cambia en medio, la pantalla puede mostrar una mezcla: por ejemplo, si un contador pasa de 59 a 60 justo después de escribir las decenas, se ve `50`. Se evita copiando el valor en un registro antes de empezar a escribir:
+¿Por qué muestrear? Escribir las cifras de un número toma varias escrituras. Si el número cambia en medio, la pantalla puede mostrar una mezcla: si un contador pasa de 59 a 60 justo después de escribir las decenas, se ve `50`.
 
-```verilog
-always @(posedge clk)
-    if (rst)            copia <= 8'd0;
-    else if (muestrear) copia <= valor;   // muestrear: pulso de un ciclo antes de escribir
-```
-
-**Dónde se usa.** En la Parte 2, para el valor A (interruptores) y para el valor B.
+**En el laboratorio:** en la Parte 2, para el valor A (interruptores) y el valor B.
 
 ---
 
 ## 9. Simular con el modelo de la LCD
 
-**La idea.** El testbench conecta el controlador a [`test/modelo_lcd.v`](test/modelo_lcd.v), un modelo que se comporta como la LCD: captura cada byte en el flanco de bajada de E, guarda los caracteres, revisa los tiempos de la hoja de datos y muestra en la consola lo que se vería.
+**Términos clave**
+
+- **Testbench:** módulo de simulación que genera las entradas del diseño y revisa sus salidas. No se sintetiza.
+- **Modelo de comportamiento:** código que imita a un dispositivo real. [`test/modelo_lcd.v`](test/modelo_lcd.v) se comporta como la LCD: captura cada byte en el flanco de bajada de E, guarda los caracteres, revisa los tiempos de la hoja de datos e imprime la pantalla en la consola.
+- **Nombre jerárquico:** acceso desde el testbench a algo interno de otro módulo, con un punto: `lcd.caracter(...)`, `dut.estado`.
+- **VCD:** archivo con las formas de onda que se abre en GTKWave.
 
 Desde el testbench se puede consultar el modelo (instancia `lcd`):
 
@@ -466,9 +428,10 @@ Desde el testbench se puede consultar el modelo (instancia `lcd`):
 | `lcd.errores` | Número de errores de tiempo o de protocolo |
 | `lcd.escrituras` | Número de bytes recibidos |
 
-**El código** ([`ejemplos/tb_revisar_pantalla.v`](ejemplos/tb_revisar_pantalla.v)): una tarea que compara una parte de la pantalla con un texto.
+**Cómo se hace en Verilog:** un testbench que cambia los valores de entrada y revisa una parte de la pantalla.
 
 ```verilog
+// Compara n caracteres de la pantalla, desde (fila, columna), con un texto
 task revisar_texto(input integer fila, input integer columna,
                    input [8*16-1:0] esperado, input integer n);
     integer k;
@@ -477,22 +440,28 @@ task revisar_texto(input integer fila, input integer columna,
         visto = 0;
         for (k = 0; k < n; k = k + 1)
             visto[8*(n-1-k) +: 8] = lcd.caracter(fila, columna + k);
-        if (visto === esperado) $display("OK     ...");
-        else                    $display("FALLO  ...");
+        if (visto === esperado) $display("OK     fila %0d: %0s", fila + 1, visto);
+        else                    $display("FALLO  fila %0d: se esperaba %0s y se ve %0s",
+                                         fila + 1, esperado, visto);
     end
 endtask
 
-// Uso: revisar 2 caracteres de la fila 2 (índice 1), desde la columna 8
-revisar_texto(1, 8, "23", 2);
+initial begin
+    #200 rst = 1'b0;
+    wait (lcd.escrituras == 39);            // inicialización y texto: 5 + 2 + 32 bytes
+    num_a = 8'hB7;                          // nuevo valor de entrada
+    #5_000_000;                             // esperar al menos un refresco (5 ms)
+    lcd.imprimir_pantalla;
+    revisar_texto(0, 14, "B7", 2);          // fila 1, columnas 14 y 15
+    $finish;
+end
 ```
 
-**La explicación.**
+- `"B7"` tiene menos de 16 caracteres, así que Verilog lo completa con ceros a la izquierda; `visto` también empieza en ceros, y la comparación funciona.
+- `wait (lcd.escrituras == ...)` sirve aunque la máquina nunca llegue a un estado final, como en el lazo de refresco de la Parte 2.
+- Las posiciones, el formato y los tiempos del ejemplo dependen del diseño de cada grupo.
 
-- La tarea lee `n` caracteres del modelo y los arma en un vector, en el mismo orden que un texto entre comillas.
-- `"23"` tiene menos de 16 caracteres, así que Verilog lo completa con ceros a la izquierda; `visto` también empieza en ceros, de modo que la comparación funciona.
-- Para esperar a que el controlador escriba, se puede esperar un número de bytes: `wait (lcd.escrituras == 39);`. Esto sirve aunque la máquina nunca llegue a un estado final, como en el lazo de refresco de la Parte 2.
-
-**Mensajes del modelo.**
+**Mensajes del modelo:**
 
 | Mensaje | Qué revisar |
 |---|---|
@@ -502,9 +471,9 @@ revisar_texto(1, 8, "23", 2);
 | `RS o dato indefinidos (x/z)` | Señales sin reset o sin conectar |
 | `Function Set en modo 4 bits` | El comando Function Set |
 
-**Velocidad de la simulación.** El modelo revisa tiempos reales, así que `CLK_FREQ` debe ser 50 MHz, igual que el reloj del testbench. Lo que sí se reduce es el periodo de refresco de la Parte 2: con 100 ms, probar varios valores tomaría mucho tiempo de simulación.
+**Velocidad de la simulación:** el modelo revisa tiempos reales, así que `CLK_FREQ` debe ser 50 MHz, igual que el reloj del testbench. Lo que sí se reduce es el periodo de refresco de la Parte 2: con 100 ms, probar varios valores tomaría mucho tiempo de simulación.
 
-**En GTKWave.** Mostrar `lcd_data` en hexadecimal y `estado` en decimal (clic derecho sobre la señal → *Data Format*). Como un pulso de E dura 1 µs y la simulación decenas de milisegundos, hay que ampliar bastante (*zoom*) para ver un byte.
+**En GTKWave:** mostrar `lcd_data` en hexadecimal y `estado` en decimal (clic derecho sobre la señal → *Data Format*). Como un pulso de E dura 1 µs y la simulación decenas de milisegundos, hay que ampliar bastante (*zoom*) para ver un byte.
 
 ---
 
@@ -515,32 +484,10 @@ revisar_texto(1, 8, "23", 2);
 | Nada, ni bloques | Alimentación o contraste | Selector de alimentación de la LCD, potenciómetro de contraste, orientación del conector |
 | Fila 1 con 16 bloques, fila 2 vacía | La LCD no se inicializó | Reset (¿queda activo todo el tiempo?), asignación de pines, pin 101 (nCEO), reloj |
 | Caracteres equivocados | Bits del bus en desorden | Asignación de `lcd_data[7:0]` en el Pin Planner |
-| Caracteres extraños al comienzo de una fila | Texto de menos de 16 caracteres | Longitud de los textos (sección 5) |
-| La fila 2 no aparece | Falta ubicar el cursor | Instrucción Set DDRAM Address (sección 6) |
+| Caracteres extraños al comienzo de una fila | Texto de menos de 16 caracteres | Longitud de los textos (tema 5) |
+| La fila 2 no aparece | Falta ubicar el cursor | Instrucción Set DDRAM Address (tema 6) |
 | La pantalla parpadea al actualizar | Se usa Clear Display en cada actualización | Actualizar solo los caracteres que cambian |
 | Funciona en simulación pero no en la tarjeta | Diferencias entre testbench y tarjeta | `CLK_FREQ`, polaridad del reset, pines, pin 101, archivo `.sof` programado |
-
----
-
-## 11. Para ir más allá: caracteres personalizados
-
-La LCD permite definir hasta 8 caracteres propios (códigos 0 a 7) en su memoria CGRAM. Cada carácter son 8 bytes, uno por fila de puntos; en cada byte solo cuentan los 5 bits bajos, y un 1 enciende el punto.
-
-<p align="center">
- <img src="figs/cgram_caracter.png" alt="Carácter personalizado" width=560 >
-</p>
-<p align="center">
- Figura 6: Un carácter personalizado (número 0): dibujo y bytes
-</p>
-
-Para definir el carácter número *n* y mostrarlo:
-
-1. Enviar la instrucción Set CGRAM Address: 0x40 + 8·*n*.
-2. Enviar los 8 bytes del dibujo como datos (`RS = 1`).
-3. Volver a la pantalla con Set DDRAM Address.
-4. Escribir el código *n* como cualquier otro carácter.
-
-El modelo de la LCD guarda estos caracteres y los muestra como `*` en la consola.
 
 ---
 
