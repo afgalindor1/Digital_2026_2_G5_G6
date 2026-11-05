@@ -21,7 +21,7 @@ Las técnicas de Verilog que usa el laboratorio, cada una con un código sencill
 | [`src`](src) | `lcd_escritura.v`, `lcd_ctrl.v`, `lcd_top.v` | Controlador de la LCD en modo de 8 bits |
 | [`test`](test) | `modelo_lcd.v`, `tb_lcd.v` | Modelo de la pantalla y testbench |
 
-Cada grupo copia estas carpetas en su repositorio de entrega.
+Cada grupo copia estas carpetas para su uso.
 
 ### Ejemplos de código
 

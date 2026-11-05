@@ -144,7 +144,7 @@ El laboratorio se desarrolla bajo el siguiente esquema:
   <tr>
     <td>11-12</td>
     <td>LCD 16x2 en modo paralelo</td>
-    <td><a href="/Labs/Lab_5/README.md">Lab_5</a></td>
+    <td><a href="/Labs/Lab_5/Lab5_LCD/README.md">Lab_5</a></td>
     <td>Link G5, Link G6</td>
     <td>G5 23/11/2026 G6 26/11/2026</td>
     <td>10%</td>
